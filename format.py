@@ -1,7 +1,6 @@
 import random
 import datetime
 import tag_ids
-import fedwire_codes
 
 from datetime import datetime as dt
 
@@ -60,9 +59,9 @@ class Batch:
 
 class Transaction:
     # holds the tags and produces the formatted entry
-    def __init__(self):
+    def __init__(self, all_tags):
         # list of all tags made up in entry
-        self.all_tags = list()
+        self.all_tags = all_tags
 
     def create_entry(self):
         # processes and joins tag to create entry
@@ -117,8 +116,8 @@ class Tag:
         return cls(tag_ids.IMAD, tag_element)
 
     @classmethod
-    def amount(cls, amt):
-        return cls(tag_ids.AMOUNT, fill_zeros(amt, 12))
+    def amount(cls, amnt):
+        return cls(tag_ids.AMOUNT, fill_zeros(amnt, 12))
 
     @classmethod
     def sender_DI(cls, routing_number, receiver_short_name):
@@ -143,11 +142,13 @@ class Tag:
         return cls(tag_ids.BUSINESS_FUNCTION_CODE, code)
 
     @classmethod
-    def sender_reference(cls, reference_number=None):
-        if not reference_number:
+    def sender_reference(cls, reference_number=0):
+        if reference_number == 0:
             reference_number = generate_sender_reference_number()
 
-        return cls(tag_ids.SENDER_REFERENCE, add_delimiter(reference_number))
+        reference_number = add_delimiter(str(reference_number), 16)
+
+        return cls(tag_ids.SENDER_REFERENCE, reference_number)
 
     @classmethod
     def beneficiary(cls, id_code, identifier, name, address: list):
@@ -183,6 +184,7 @@ class Tag:
 def add_delimiter(value, field_length=0):
     # this will be used to add the delimiter icon
     # needs to identify tags that don't meet the max length
+    value = str(value)
     value_length = len(value)
 
     if value_length < field_length:
@@ -197,18 +199,20 @@ def add_delimiter(value, field_length=0):
 
 
 def fill_space(current_value, field_length):
-    space_to_fill = field_length - len(current_value)
+    space_to_fill = field_length - len(str(current_value))
     return current_value + (space_to_fill * ' ')
 
 
 def fill_zeros(current_value, field_length):
+    current_value = str(current_value)
     space_to_fill = field_length - len(current_value)
     return (space_to_fill * '0') + current_value
 
 
 def generate_sender_reference_number():
-    return random.randrange(1, 10000000000000000)
+    return str(random.randrange(1, 10000000000000000))
 
 def add_decimal(value):
-    value_list = [v for v in value].insert(-2, '.') # insert the decimal point
+    value_list = [v for v in value]
+    value_list.insert(-2, '.') # insert the decimal point
     return ''.join(value_list)
