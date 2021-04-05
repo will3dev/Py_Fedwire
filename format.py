@@ -2,8 +2,6 @@ import random
 import datetime
 import tag_ids
 
-from datetime import datetime as dt
-
 # CTR transactions: 1500, 1510, 1520, 2000,
 # 3100, 3320, 3400, 3600, 42000, 5000, 6000
 
